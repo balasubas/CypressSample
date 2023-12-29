@@ -15,7 +15,7 @@ describe('Perform basic logging in and out',()=>{
        cy.enterUsername('user')
        cy.clickLogin()
 
-       cy.get('h3')
+       cy.get('h3[data-test="error"]')
          .contains('Epic sadface: Password is required')
     })
 
@@ -37,6 +37,32 @@ describe('Perform basic logging in and out',()=>{
         .should('have.text','Products')
         
       cy.logOut()    
+    })
+
+    ////////////////////////////////
+    it('I attempt to log in as a locked out user',()=>{
+      cy.logIn('LOCKED')
+
+      cy.get('h3[data-test="error"]')
+        .contains('Epic sadface: Sorry, this user has been locked out.')
+    })
+
+    ////////////////////////////////
+    it('I attempt to log in as a performance glitch user',()=>{
+
+      const start = performance.now()
+
+      cy.logIn('GLITCH')
+
+      cy.get('.title')
+        .should('have.text','Products')
+
+        // TODO: This needs fixed. It's not getting the correct result
+      cy.wrap(performance.now())
+        .then((finish_time)=>{
+          cy.log(`${finish_time - start}`)
+          cy.wrap(`${finish_time - start}`).then((result)=>{ expect(result).to.be.greaterThan(Cypress.config().idealPageLoadTime) })
+        })    
     })
 
 })

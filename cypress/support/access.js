@@ -3,8 +3,16 @@
 Cypress.Commands.add('logIn',(user_type)=>{
     var fixture_file = null
     switch(user_type){
-        default: fixture_file = 'standard-user'
+
+        case "GLITCH": fixture_file = 'users/glitch-user'
+                       break
+
+        case "LOCKED": fixture_file = 'users/locked-user'
+                       break
+
+        default: fixture_file = 'users/standard-user'
                  break
+                 
     }
 
     cy.fixture(fixture_file)

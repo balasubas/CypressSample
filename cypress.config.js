@@ -8,6 +8,7 @@ module.exports = defineConfig({
     },
   },
   defaultCommandTimeout: 15000,
+  idealPageLoadTime: 2000,
   numTestsKeptInMemory: 0,
   pageLoadTimeout: 180000,
   viewportWidth: 1000,
