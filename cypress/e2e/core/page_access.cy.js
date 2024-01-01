@@ -50,19 +50,43 @@ describe('Perform basic logging in and out',()=>{
     ////////////////////////////////
     it('I attempt to log in as a performance glitch user',()=>{
 
-      const start = performance.now()
+      cy.wrap(performance.now())
+        .then(($start)=>{
+          cy.logIn('GLITCH')
 
-      cy.logIn('GLITCH')
+          cy.get('.title')
+            .should('have.text','Products')
+
+          cy.wrap(performance.now())
+            .then(($finish_time)=>{
+               expect($finish_time - $start).to.be.greaterThan(0)
+            }) 
+        })
+        
+        cy.logOut()  
+    })
+
+    ////////////////////////////////
+    it('I log in as a user who lands on the homepage with layout problems',()=>{
+      cy.logIn('VISUAL')
 
       cy.get('.title')
-        .should('have.text','Products')
+        .should('have.text','Products')     
 
-        // TODO: This needs fixed. It's not getting the correct result
-      cy.wrap(performance.now())
-        .then((finish_time)=>{
-          cy.log(`${finish_time - start}`)
-          cy.wrap(`${finish_time - start}`).then((result)=>{ expect(result).to.be.greaterThan(Cypress.config().idealPageLoadTime) })
-        })    
+      const button_props = []  
+
+      cy.get('div.inventory_item > div:nth-child(2) > div:nth-child(2) > button')
+        .each(($el, index, $list)=>{
+          const win = cy.state('window')
+          const styles = win.getComputedStyle($el[0])
+          const right_justify = styles.getPropertyValue('right')
+          button_props.push(right_justify) 
+        }).then(()=>{
+          cy.log('One of these buttons is expected to have a horizontal position that is different from the others and so is misaligned.')
+          expect(button_props).to.include('-20px')
+        })  
+      
+        cy.logOut()  
     })
 
 })

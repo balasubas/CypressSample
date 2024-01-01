@@ -9,6 +9,9 @@ Cypress.Commands.add('logIn',(user_type)=>{
 
         case "LOCKED": fixture_file = 'users/locked-user'
                        break
+        
+        case "VISUAL": fixture_file = 'users/visual-user'
+                       break              
 
         default: fixture_file = 'users/standard-user'
                  break
