@@ -2,6 +2,7 @@
 //////////////////////////////////////////////////////////
 describe('Perform basic logging in and out',()=>{
 
+    ////////////////////////////////
     beforeEach(()=>{
         cy.visit(Cypress.config().baseUrl)
     })
