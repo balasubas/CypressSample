@@ -1,1 +1,1 @@
-npx cypress open
+npx cypress open --browser firefox

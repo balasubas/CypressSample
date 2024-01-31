@@ -22,11 +22,10 @@ Cypress.Commands.add('logIn',(user_type)=>{
       .then((user_data)=>{
          var username = user_data.username
          var password = user_data.password
- 
+
         cy.enterUsername(username)
         cy.enterPassword(password)
-        cy.clickLogin()  
-          
+        cy.clickLogin()
       })
 
 })
@@ -58,7 +57,10 @@ Cypress.Commands.add('logOut',()=>{
 
     cy.get('#react-burger-menu-btn')
       .click({ force : true })
-    
+
+    cy.get('#reset_sidebar_link')
+      .click({ force : true })
+
     cy.get('#logout_sidebar_link')
       .click({ force : true })  
     

@@ -9,6 +9,9 @@ describe('As a Regular User I want to be able to perform basic',()=>{
 
     ////////////////////////////////
     before(()=>{
+        // Setting testIsolation to false here because we're relying on each test as a sequence of
+        // operations
+        Cypress.config().testIsolation = false
         budget = 65.00
         items_within_budget = []
         cy.visit(Cypress.config().baseUrl)
@@ -31,9 +34,6 @@ describe('As a Regular User I want to be able to perform basic',()=>{
              var shopping_list = data.standard_shopping_list
              shopping_list.forEach((item)=>{
                 cy.find_item(item)
-                  .parent()
-                  .parent()
-                  .parent()
                   .find('div[class="pricebar"] > div[class="inventory_item_price"]')
                   .invoke('text')
                   .then((price)=>{
@@ -58,10 +58,34 @@ describe('As a Regular User I want to be able to perform basic',()=>{
              var shopping_list = data.standard_shopping_list
              shopping_list.forEach((item)=>{
                 if(items_within_budget.includes(item)){
-                    cy.log(item + ' <<<')
+                    cy.find_item(item)
+                      .find('div[class="pricebar"]')
+                      .first()
+                      .find('button')
+                      .contains('Add to cart')
+                      .click({force: true})
                 }
              })
           })
+    })
+
+    ////////////////////////////////
+    it('And I have seconds thoughts about one item, remove from the cart and do the purchase', ()=>{
+        cy.fixture('lists/shopping_list')
+          .then((data)=>{
+             var to_remove = data.remove_from_cart
+             cy.find_item(to_remove)
+               .find('div[class="pricebar"]')
+               .first()
+               .find('button')
+               .contains('Remove')
+               .click({force: true})
+          })
+
+          // TODO: continue implementing:
+          //      1. Proceed to cart
+          //      2. Verify items and total
+          //      3. Do the purchase
     })
 
 })
