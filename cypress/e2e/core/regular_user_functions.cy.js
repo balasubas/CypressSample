@@ -80,6 +80,13 @@ describe('As a Regular User I want to be able to perform basic',()=>{
                .find('button')
                .contains('Remove')
                .click({force: true})
+
+             return data.final_shopping_list
+          }).then((final_shopping_list)=>{
+             cy.navigate_to_cart()
+             final_shopping_list.forEach((item)=>{
+                cy.find_cart_item(item)
+              })
           })
 
           // TODO: continue implementing:
