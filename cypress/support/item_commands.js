@@ -11,8 +11,9 @@ Cypress.Commands.add('find_item',(item_name)=>{
 
 //////////////////////////////////////////////////////////
 Cypress.Commands.add('navigate_to_cart',()=>{
-    cy.get('#shopping_cart_container')
+    cy.get('#shopping_cart_container > a')
       .click({ force : true })
+    cy.contains('Your Cart')
 })
 
 //////////////////////////////////////////////////////////
@@ -26,5 +27,10 @@ Cypress.Commands.add('find_cart_item', (name)=>{
 
 //////////////////////////////////////////////////////////
 Cypress.Commands.add('checkout',(first, last,zip)=>{
-    // TODO: Implement
+    cy.get('#checkout').click({ force : true })
+    cy.contains('Checkout: Your Information')
+    cy.get('#first-name').clear().type(first)
+    cy.get('#last-name').clear().type(first)
+    cy.get('#postal-code').clear().type(first)
+    cy.get('#continue').click({ force : true })
 })

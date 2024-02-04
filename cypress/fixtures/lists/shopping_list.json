@@ -2,6 +2,6 @@
 
   "standard_shopping_list": ["Sauce Labs Backpack","Sauce Labs Onesie","Sauce Labs Fleece Jacket","Sauce Labs Bike Light"],
   "remove_from_cart": "Sauce Labs Onesie",
-  "final_shopping_list": ["Sauce Labs Backpack","Sauce Labs Bike Light"]
-
+  "final_shopping_list": ["Sauce Labs Backpack","Sauce Labs Bike Light"],
+  "checkout_regular_user_info": {"first": "regular","last": "user","zip": "10021"}
 }

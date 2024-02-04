@@ -9,9 +9,6 @@ describe('As a Regular User I want to be able to perform basic',()=>{
 
     ////////////////////////////////
     before(()=>{
-        // Setting testIsolation to false here because we're relying on each test as a sequence of
-        // operations
-        Cypress.config().testIsolation = false
         budget = 65.00
         items_within_budget = []
         cy.visit(Cypress.config().baseUrl)
@@ -73,26 +70,39 @@ describe('As a Regular User I want to be able to perform basic',()=>{
     it('And I have seconds thoughts about one item, remove from the cart and do the purchase', ()=>{
         cy.fixture('lists/shopping_list')
           .then((data)=>{
-             var to_remove = data.remove_from_cart
+             return data.remove_from_cart
+          })
+          .then((to_remove)=>{
              cy.find_item(to_remove)
                .find('div[class="pricebar"]')
                .first()
                .find('button')
                .contains('Remove')
                .click({force: true})
+          })
 
-             return data.final_shopping_list
+        cy.fixture('lists/shopping_list')
+          .then((data)=>{
+             return cy.wrap(data.final_shopping_list)
           }).then((final_shopping_list)=>{
              cy.navigate_to_cart()
              final_shopping_list.forEach((item)=>{
                 cy.find_cart_item(item)
-              })
+             })
+          })
+
+        cy.fixture('lists/shopping_list')
+          .then((data)=>{
+             return cy.wrap(data.checkout_regular_user_info)
+          }).then((user_info)=>{
+             cy.checkout(user_info.first, user_info.last, user_info.zip)
           })
 
           // TODO: continue implementing:
-          //      1. Proceed to cart
-          //      2. Verify items and total
-          //      3. Do the purchase
+          //      - Verify final checkout items
+          //      - verify totals
+          //      - verify items
+          //      - verify card info
     })
 
 })
