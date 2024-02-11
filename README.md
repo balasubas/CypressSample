@@ -1,4 +1,4 @@
-# THIS IS A SAMPLE REPO OF SOME CYPRESS TESTS:
+# THIS IS A SAMPLE REPOSITORY OF SOME CYPRESS TESTS:
 
 ## This will run a series of tests against the website: https://www.saucedemo.com/
 
