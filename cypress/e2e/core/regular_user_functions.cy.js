@@ -67,7 +67,7 @@ describe('As a Regular User I want to be able to perform basic',()=>{
     })
 
     ////////////////////////////////
-    it('And I have seconds thoughts about one item, remove from the cart and do the purchase', ()=>{
+    it('And I have seconds thoughts about one item and remove it from the cart', ()=>{
         cy.fixture('lists/shopping_list')
           .then((data)=>{
              return data.remove_from_cart
@@ -80,7 +80,10 @@ describe('As a Regular User I want to be able to perform basic',()=>{
                .contains('Remove')
                .click({force: true})
           })
+    })
 
+    ////////////////////////////////
+    it('Then I do the purchase',()=>{
         cy.fixture('lists/shopping_list')
           .then((data)=>{
              return cy.wrap(data.final_shopping_list)
@@ -98,11 +101,60 @@ describe('As a Regular User I want to be able to perform basic',()=>{
              cy.checkout(user_info.first, user_info.last, user_info.zip)
           })
 
-          // TODO: continue implementing:
-          //      - Verify final checkout items
-          //      - verify totals
-          //      - verify items
-          //      - verify card info
+        verify_item_prices()
+        verify_subtotal()
+        cy.get('#finish').click({ force : true })
+
+        verify_checkout_completion()
+
+        cy.get('#back-to-products').click({ force : true })
+        cy.get('.title')
+          .should('have.text','Products')
     })
 
 })
+
+//////////////////////////////////////////////////////////
+function verify_item_prices(){
+   cy.fixture('lists/shopping_list')
+     .then((data)=>{
+         return cy.wrap(data.final_shopping_list)
+     }).then((final_shopping_list)=>{
+         var sub_total = 0
+         final_shopping_list.forEach((item)=>{
+            cy.get('div[class="inventory_item_name"]')
+              .contains(item)
+         })
+     })
+}
+
+//////////////////////////////////////////////////////////
+function verify_subtotal(){
+    var sub_total = 0
+
+    cy.get('div[class="inventory_item_price"]')
+      .each((item, index, prices)=>{
+          cy.wrap(item)
+            .invoke('text')
+            .then((text)=>{
+                var actual_price = parseFloat(text.replace(/[^0-9]/,''))
+                sub_total += actual_price
+            })
+      }).then(()=>{
+          cy.get('div[class="summary_subtotal_label"]')
+            .invoke('text')
+            .then((text)=>{
+                var final_sub_total = parseFloat(text.replace(/[^0-9.]/g,''))
+                expect(final_sub_total).to.equal(sub_total)
+            })
+      })
+}
+
+//////////////////////////////////////////////////////////
+function verify_checkout_completion(){
+      cy.fixture('messages/std_messages')
+        .then((data)=>{
+            cy.get('div[class="complete-text"]')
+              .contains(data.checkout_complete)
+        })
+}

@@ -16,8 +16,11 @@ describe('Perform basic logging in and out',()=>{
        cy.enterUsername('user')
        cy.clickLogin()
 
-       cy.get('h3[data-test="error"]')
-         .contains('Epic sadface: Password is required')
+      cy.fixture('messages/std_messages')
+        .then((data)=>{
+            cy.get('h3')
+              .contains(data.pwd_req)
+        })
     })
 
     ////////////////////////////////
@@ -25,9 +28,13 @@ describe('Perform basic logging in and out',()=>{
       cy.enterUsername('user')
       cy.enterPassword('wrongPwd')
       cy.clickLogin()
-      
-      cy.get('h3')
-        .contains('Epic sadface: Username and password do not match any user in this service')
+
+      cy.fixture('messages/std_messages')
+        .then((data)=>{
+            cy.get('h3')
+              .contains(data.user_pwd_req)
+        })
+
     })
 
     ////////////////////////////////
