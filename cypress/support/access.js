@@ -11,7 +11,10 @@ Cypress.Commands.add('logIn',(user_type)=>{
                        break
         
         case "VISUAL": fixture_file = 'users/visual-user'
-                       break              
+                       break
+
+        case "PROBLEM" : fixture_file = 'users/problem-user'
+                         break
 
         default: fixture_file = 'users/standard-user'
                  break

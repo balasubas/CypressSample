@@ -1,6 +1,6 @@
 
 //////////////////////////////////////////////////////////
-describe('As a Regular User I want to be able to perform basic',()=>{
+describe('As a Problem User I want to try and make a purchase',()=>{
 
     ////////// DECLARATIONS ////////
 
@@ -12,7 +12,7 @@ describe('As a Regular User I want to be able to perform basic',()=>{
         budget = 65.00
         items_within_budget = []
         cy.visit(Cypress.config().baseUrl)
-        cy.logIn('STANDARD')
+        cy.logIn('PROBLEM')
         cy.get('.title')
           .should('have.text','Products')
     })
@@ -98,6 +98,8 @@ describe('As a Regular User I want to be able to perform basic',()=>{
           .then((data)=>{
              return cy.wrap(data.checkout_regular_user_info)
           }).then((user_info)=>{
+             // TODO: Here check for the error message as this is a
+             //       problem user
              cy.checkout(user_info.first, user_info.last, user_info.zip)
           })
 
