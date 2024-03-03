@@ -52,8 +52,9 @@ describe('As a Problem User I want to try and make a purchase',()=>{
     it('Then I add the following items within my budget to the cart',()=>{
         cy.fixture('lists/shopping_list')
           .then((data)=>{
-             var shopping_list = data.standard_shopping_list
-             shopping_list.forEach((item)=>{
+             return cy.wrap(data.problem_user_shopping_list)
+          }).then((combined)=>{
+             combined.forEach((item)=>{
                 if(items_within_budget.includes(item)){
                     cy.find_item(item)
                       .find('div[class="pricebar"]')
@@ -67,96 +68,51 @@ describe('As a Problem User I want to try and make a purchase',()=>{
     })
 
     ////////////////////////////////
-    it('And I have seconds thoughts about one item and remove it from the cart', ()=>{
+    it('And I have seconds thoughts about one item and remove it through the main items screen', ()=>{
         cy.fixture('lists/shopping_list')
           .then((data)=>{
-             return data.remove_from_cart
+             return cy.wrap(data.problem_cart_removal)
           })
           .then((to_remove)=>{
              cy.find_item(to_remove)
                .find('div[class="pricebar"]')
                .first()
                .find('button')
-               .contains('Remove')
-               .click({force: true})
+               .should('not.have.text','Remove')
+
+             cy.log('Item: ' + to_remove + ' could not be added to the cart')
           })
     })
 
     ////////////////////////////////
-    it('Then I do the purchase',()=>{
+    it('Then I try to remove my other orders through the main screen',()=>{
         cy.fixture('lists/shopping_list')
           .then((data)=>{
-             return cy.wrap(data.final_shopping_list)
-          }).then((final_shopping_list)=>{
-             cy.navigate_to_cart()
-             final_shopping_list.forEach((item)=>{
-                cy.find_cart_item(item)
+             return cy.wrap(data.problem_items_removal)
+          })
+          .then((removal_items)=>{
+             removal_items.forEach((to_remove)=>{
+                 cy.find_item(to_remove)
+                   .find('div[class="pricebar"]')
+                   .first()
+                   .find('button')
+                   .contains('Remove')
+                   .click({force: true})
+
+                 cy.find_item(to_remove)
+                   .find('div[class="pricebar"]')
+                   .first()
+                   .find('button')
+                   .contains('Remove')
+
+                 cy.log('Main screen remove button is not working for: ' + to_remove)
+
              })
           })
-
-        cy.fixture('lists/shopping_list')
-          .then((data)=>{
-             return cy.wrap(data.checkout_regular_user_info)
-          }).then((user_info)=>{
-             // TODO: Here check for the error message as this is a
-             //       problem user
-             cy.checkout(user_info.first, user_info.last, user_info.zip)
-          })
-
-        verify_item_prices()
-        verify_subtotal()
-        cy.get('#finish').click({ force : true })
-
-        verify_checkout_completion()
-
-        cy.get('#back-to-products').click({ force : true })
-        cy.get('.title')
-          .should('have.text','Products')
     })
 
+    ////////////////////////////////
+    it('Then I try to remove my items through the cart',()=>{
+        // TODO: Implement
+    })
 })
-
-//////////////////////////////////////////////////////////
-function verify_item_prices(){
-   cy.fixture('lists/shopping_list')
-     .then((data)=>{
-         return cy.wrap(data.final_shopping_list)
-     }).then((final_shopping_list)=>{
-         var sub_total = 0
-         final_shopping_list.forEach((item)=>{
-            cy.get('div[class="inventory_item_name"]')
-              .contains(item)
-         })
-     })
-}
-
-//////////////////////////////////////////////////////////
-function verify_subtotal(){
-    var sub_total = 0
-
-    cy.get('div[class="inventory_item_price"]')
-      .each((item, index, prices)=>{
-          cy.wrap(item)
-            .invoke('text')
-            .then((text)=>{
-                var actual_price = parseFloat(text.replace(/[^0-9]/,''))
-                sub_total += actual_price
-            })
-      }).then(()=>{
-          cy.get('div[class="summary_subtotal_label"]')
-            .invoke('text')
-            .then((text)=>{
-                var final_sub_total = parseFloat(text.replace(/[^0-9.]/g,''))
-                expect(final_sub_total).to.equal(sub_total)
-            })
-      })
-}
-
-//////////////////////////////////////////////////////////
-function verify_checkout_completion(){
-      cy.fixture('messages/std_messages')
-        .then((data)=>{
-            cy.get('div[class="complete-text"]')
-              .contains(data.checkout_complete)
-        })
-}
