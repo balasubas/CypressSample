@@ -9,7 +9,7 @@
   - Presently there are only 2 tests: page access tests and regular user checkout tests
   - In the future more tests will be added to cover corner cases, different user types and more verification 
     of UI elements.
-
+  - Will be adding more tests in the future
 
 
 
