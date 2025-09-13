@@ -22,5 +22,8 @@
   "homepage": "https://github.com/balasubas/CypressSample#readme",
   "devDependencies": {
     "cypress": "^13.6.1"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-code": "^1.0.113"
   }
 }

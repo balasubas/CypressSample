@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "deny": [
+      "Edit(../../*)",
+      "Bash(rm -rf /)",
+      "Bash(mv ../../*)"
+    ],
+    "allow": [
+      "Edit(*)",
+      "Bash(git commit:*)",
+      "Read(*)"
+    ]
+  }
+}
