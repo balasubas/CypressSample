@@ -79,22 +79,146 @@ describe('Perform basic logging in and out',()=>{
       cy.logIn('VISUAL')
 
       cy.get('.title')
-        .should('have.text','Products')     
+        .should('have.text','Products')
 
-      const button_props = []  
+      const button_props = []
 
       cy.get('div.inventory_item > div:nth-child(2) > div:nth-child(2) > button')
         .each(($el, index, $list)=>{
           const win = cy.state('window')
           const styles = win.getComputedStyle($el[0])
           const right_justify = styles.getPropertyValue('right')
-          button_props.push(right_justify) 
+          button_props.push(right_justify)
         }).then(()=>{
           cy.log('One of these buttons is expected to have a horizontal position that is different from the others and so is misaligned.')
           expect(button_props).to.include('-20px')
-        })  
-      
-        cy.logOut()  
+        })
+
+        cy.logOut()
+    })
+
+    ////////////////////////////////
+    it('I attempt to log in with SQL injection in username',()=>{
+      cy.enterUsername("' OR '1'='1")
+      cy.enterPassword('password')
+      cy.clickLogin()
+
+      cy.fixture('messages/std_messages')
+        .then((data)=>{
+            cy.get('h3')
+              .contains(data.user_pwd_req)
+        })
+    })
+
+    ////////////////////////////////
+    it('I attempt to log in with XSS payload in username',()=>{
+      cy.enterUsername('<script>alert("xss")</script>')
+      cy.enterPassword('password')
+      cy.clickLogin()
+
+      cy.fixture('messages/std_messages')
+        .then((data)=>{
+            cy.get('h3')
+              .contains(data.user_pwd_req)
+        })
+    })
+
+    ////////////////////////////////
+    it('I attempt to log in with extremely long username',()=>{
+      const longUsername = 'a'.repeat(1000)
+      cy.enterUsername(longUsername)
+      cy.enterPassword('password')
+      cy.clickLogin()
+
+      cy.fixture('messages/std_messages')
+        .then((data)=>{
+            cy.get('h3')
+              .contains(data.user_pwd_req)
+        })
+    })
+
+    ////////////////////////////////
+    it('I attempt to log in with special characters in credentials',()=>{
+      cy.enterUsername('user@#$%^&*()')
+      cy.enterPassword('pwd!@#$%^&*()')
+      cy.clickLogin()
+
+      cy.fixture('messages/std_messages')
+        .then((data)=>{
+            cy.get('h3')
+              .contains(data.user_pwd_req)
+        })
+    })
+
+    ////////////////////////////////
+    it('I attempt to access protected page without authentication',()=>{
+      cy.request({
+        url: '/inventory.html',
+        failOnStatusCode: false
+      }).then((response) => {
+        expect(response.status).to.eq(404)
+      })
+    })
+
+    ////////////////////////////////
+    it('I attempt multiple rapid login attempts',()=>{
+      for(let i = 0; i < 5; i++) {
+        cy.enterUsername('invalid_user')
+        cy.enterPassword('invalid_password')
+        cy.clickLogin()
+
+        cy.get('h3[data-test="error"]')
+          .should('be.visible')
+
+        cy.get('[data-test="error-button"]')
+          .click()
+      }
+    })
+
+    ////////////////////////////////
+    it('I attempt to log in with empty spaces as credentials',()=>{
+      cy.enterUsername('   ')
+      cy.enterPassword('   ')
+      cy.clickLogin()
+
+      cy.get('h3')
+        .contains('Epic sadface: Username and password do not match any user in this service')
+    })
+
+    ////////////////////////////////
+    it('I verify session timeout behavior',()=>{
+      cy.logIn('STANDARD')
+
+      cy.get('.title')
+        .should('have.text','Products')
+
+      // Simulate session timeout by clearing cookies
+      cy.clearCookies()
+      cy.reload()
+
+      cy.url()
+        .should('include', '/')
+        .and('not.include', '/inventory.html')
+    })
+
+    ////////////////////////////////
+    it('I attempt to access cart without login',()=>{
+      cy.request({
+        url: '/cart.html',
+        failOnStatusCode: false
+      }).then((response) => {
+        expect(response.status).to.eq(404)
+      })
+    })
+
+    ////////////////////////////////
+    it('I attempt to access checkout without login',()=>{
+      cy.request({
+        url: '/checkout-step-one.html',
+        failOnStatusCode: false
+      }).then((response) => {
+        expect(response.status).to.eq(404)
+      })
     })
 
 })
