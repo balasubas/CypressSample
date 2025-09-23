@@ -158,3 +158,246 @@ function verify_checkout_completion(){
               .contains(data.checkout_complete)
         })
 }
+
+//////////////////////////////////////////////////////////
+describe('Additional Regular User Test Scenarios',()=>{
+
+    beforeEach(()=>{
+        cy.visit(Cypress.config().baseUrl)
+        cy.logIn('STANDARD')
+        cy.get('.title')
+          .should('have.text','Products')
+    })
+
+    afterEach(()=>{
+        cy.logOut()
+    })
+
+    ////////////////////////////////
+    it('Should verify all products are displayed on the products page',()=>{
+        cy.get('.inventory_item').should('have.length.at.least', 1)
+        cy.get('.inventory_item_name').should('be.visible')
+        cy.get('.inventory_item_price').should('be.visible')
+        cy.get('.btn_inventory').should('be.visible')
+    })
+
+    ////////////////////////////////
+    it('Should be able to view product details',()=>{
+        cy.get('.inventory_item_name').first().click()
+        cy.get('.inventory_details_name').should('be.visible')
+        cy.get('.inventory_details_price').should('be.visible')
+        cy.get('.inventory_details_desc').should('be.visible')
+        cy.get('#back-to-products').click()
+        cy.get('.title').should('have.text','Products')
+    })
+
+    ////////////////////////////////
+    it('Should validate cart badge updates when adding items',()=>{
+        cy.get('.shopping_cart_badge').should('not.exist')
+
+        cy.get('.btn_inventory').first().click()
+        cy.get('.shopping_cart_badge').should('contain','1')
+
+        cy.get('.btn_inventory').eq(1).click()
+        cy.get('.shopping_cart_badge').should('contain','2')
+    })
+
+    ////////////////////////////////
+    it('Should be able to add and remove items from cart multiple times',()=>{
+        const firstItem = cy.get('.inventory_item').first()
+
+        firstItem.find('.btn_inventory').click()
+        cy.get('.shopping_cart_badge').should('contain','1')
+
+        firstItem.find('.btn_inventory').should('contain','Remove')
+        firstItem.find('.btn_inventory').click()
+        cy.get('.shopping_cart_badge').should('not.exist')
+
+        firstItem.find('.btn_inventory').should('contain','Add to cart')
+    })
+
+    ////////////////////////////////
+    it('Should validate empty cart state',()=>{
+        cy.navigate_to_cart()
+        cy.get('#continue-shopping').should('be.visible')
+        cy.get('.cart_item').should('not.exist')
+        cy.get('#checkout').should('be.disabled')
+    })
+
+    ////////////////////////////////
+    it('Should maintain cart contents when navigating back from cart',()=>{
+        cy.get('.btn_inventory').first().click()
+        cy.get('.btn_inventory').eq(1).click()
+
+        cy.navigate_to_cart()
+        cy.get('.cart_item').should('have.length',2)
+
+        cy.get('#continue-shopping').click()
+        cy.get('.title').should('have.text','Products')
+        cy.get('.shopping_cart_badge').should('contain','2')
+    })
+
+    ////////////////////////////////
+    it('Should validate product sorting functionality',()=>{
+        cy.get('.product_sort_container').select('za')
+        cy.get('.inventory_item_name').first().should('contain','Test.allTheThings()')
+
+        cy.get('.product_sort_container').select('az')
+        cy.get('.inventory_item_name').first().should('contain','Sauce Labs Backpack')
+
+        cy.get('.product_sort_container').select('hilo')
+        cy.get('.inventory_item_price').first().invoke('text').then((price1) => {
+            cy.get('.inventory_item_price').eq(1).invoke('text').then((price2) => {
+                const p1 = parseFloat(price1.replace('$',''))
+                const p2 = parseFloat(price2.replace('$',''))
+                expect(p1).to.be.at.least(p2)
+            })
+        })
+
+        cy.get('.product_sort_container').select('lohi')
+        cy.get('.inventory_item_price').first().invoke('text').then((price1) => {
+            cy.get('.inventory_item_price').eq(1).invoke('text').then((price2) => {
+                const p1 = parseFloat(price1.replace('$',''))
+                const p2 = parseFloat(price2.replace('$',''))
+                expect(p1).to.be.at.most(p2)
+            })
+        })
+    })
+
+    ////////////////////////////////
+    it('Should validate checkout form field requirements',()=>{
+        cy.get('.btn_inventory').first().click()
+        cy.navigate_to_cart()
+        cy.get('#checkout').click()
+
+        cy.get('#continue').click()
+        cy.get('.error-message-container').should('be.visible')
+        cy.get('.error-message-container').should('contain','First Name is required')
+
+        cy.get('#first-name').type('John')
+        cy.get('#continue').click()
+        cy.get('.error-message-container').should('contain','Last Name is required')
+
+        cy.get('#last-name').type('Doe')
+        cy.get('#continue').click()
+        cy.get('.error-message-container').should('contain','Postal Code is required')
+
+        cy.get('#postal-code').type('12345')
+        cy.get('#continue').click()
+        cy.get('.title').should('contain','Checkout: Overview')
+    })
+
+    ////////////////////////////////
+    it('Should validate checkout overview calculations',()=>{
+        cy.get('.btn_inventory').first().click()
+        cy.get('.btn_inventory').eq(1).click()
+
+        cy.navigate_to_cart()
+        cy.get('#checkout').click()
+
+        cy.get('#first-name').type('John')
+        cy.get('#last-name').type('Doe')
+        cy.get('#postal-code').type('12345')
+        cy.get('#continue').click()
+
+        let itemTotal = 0
+        cy.get('.inventory_item_price').each(($el) => {
+            const price = parseFloat($el.text().replace('$',''))
+            itemTotal += price
+        }).then(() => {
+            cy.get('.summary_subtotal_label').invoke('text').then((subtotalText) => {
+                const subtotal = parseFloat(subtotalText.replace(/[^\d.]/g,''))
+                expect(subtotal).to.equal(itemTotal)
+            })
+
+            cy.get('.summary_tax_label').invoke('text').then((taxText) => {
+                const tax = parseFloat(taxText.replace(/[^\d.]/g,''))
+                expect(tax).to.be.greaterThan(0)
+
+                cy.get('.summary_total_label').invoke('text').then((totalText) => {
+                    const total = parseFloat(totalText.replace(/[^\d.]/g,''))
+                    expect(total).to.equal(itemTotal + tax)
+                })
+            })
+        })
+    })
+
+    ////////////////////////////////
+    it('Should be able to cancel checkout and return to cart',()=>{
+        cy.get('.btn_inventory').first().click()
+        cy.navigate_to_cart()
+        cy.get('#checkout').click()
+
+        cy.get('#cancel').click()
+        cy.get('.title').should('contain','Your Cart')
+        cy.get('.cart_item').should('have.length',1)
+    })
+
+    ////////////////////////////////
+    it('Should validate successful checkout completion flow',()=>{
+        cy.get('.btn_inventory').first().click()
+
+        cy.navigate_to_cart()
+        cy.get('#checkout').click()
+
+        cy.get('#first-name').type('Test')
+        cy.get('#last-name').type('User')
+        cy.get('#postal-code').type('12345')
+        cy.get('#continue').click()
+
+        cy.get('#finish').click()
+
+        cy.get('.complete-header').should('contain','Thank you for your order!')
+        cy.get('.complete-text').should('be.visible')
+        cy.get('#back-to-products').should('be.visible')
+
+        cy.get('#back-to-products').click()
+        cy.get('.title').should('have.text','Products')
+        cy.get('.shopping_cart_badge').should('not.exist')
+    })
+
+    ////////////////////////////////
+    it('Should validate burger menu functionality',()=>{
+        cy.get('#react-burger-menu-btn').click()
+        cy.get('.bm-menu').should('be.visible')
+        cy.get('#inventory_sidebar_link').should('be.visible')
+        cy.get('#about_sidebar_link').should('be.visible')
+        cy.get('#logout_sidebar_link').should('be.visible')
+        cy.get('#reset_sidebar_link').should('be.visible')
+
+        cy.get('.bm-cross-button').click()
+        cy.get('.bm-menu').should('not.be.visible')
+    })
+
+    ////////////////////////////////
+    // it('Should validate reset app state functionality',()=>{
+    //     cy.get('.btn_inventory').first().click()
+    //     cy.get('.btn_inventory').eq(1).click()
+    //     cy.get('.shopping_cart_badge').should('contain','2')
+
+    //     cy.get('#react-burger-menu-btn').click()
+    //     cy.get('#reset_sidebar_link').click()
+
+    //     cy.get('.shopping_cart_badge').should('not.exist')
+    //     cy.get('.btn_inventory').should('contain','Add to cart')
+    // })
+
+    ////////////////////////////////
+    it('Should validate product image display',()=>{
+        cy.get('.inventory_item_img').should('be.visible')
+        cy.get('.inventory_item_img').each(($img) => {
+            cy.wrap($img).should('have.attr','src').and('not.be.empty')
+            cy.wrap($img).should('have.attr','alt').and('not.be.empty')
+        })
+    })
+
+    ////////////////////////////////
+    it('Should validate footer information',()=>{
+        cy.get('.footer').should('be.visible')
+        cy.get('.social_twitter').should('be.visible')
+        cy.get('.social_facebook').should('be.visible')
+        cy.get('.social_linkedin').should('be.visible')
+        cy.get('.footer_copy').should('include','Sauce Labs')
+    })
+
+})
