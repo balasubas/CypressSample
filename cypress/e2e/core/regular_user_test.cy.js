@@ -385,7 +385,7 @@ describe('Additional Regular User Test Scenarios',()=>{
     ////////////////////////////////
     it('Should validate product image display',()=>{
         cy.get('.inventory_item_img').should('be.visible')
-        cy.get('.inventory_item_img').each(($img) => {
+        cy.get('.inventory_item_img > a > img').each(($img) => {
             cy.wrap($img).should('have.attr','src').and('not.be.empty')
             cy.wrap($img).should('have.attr','alt').and('not.be.empty')
         })
@@ -397,7 +397,7 @@ describe('Additional Regular User Test Scenarios',()=>{
         cy.get('.social_twitter').should('be.visible')
         cy.get('.social_facebook').should('be.visible')
         cy.get('.social_linkedin').should('be.visible')
-        cy.get('.footer_copy').should('include','Sauce Labs')
+        cy.get('.footer_copy').should('include.text','Sauce Labs')
     })
 
 })
