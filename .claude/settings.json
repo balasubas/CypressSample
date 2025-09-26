@@ -5,10 +5,15 @@
       "Bash(rm -rf /)",
       "Bash(mv ../../*)"
     ],
+    "ask":[
+      "Bash(chmod:*)"
+    ],
     "allow": [
       "Edit(*)",
       "Bash(git commit:*)",
       "Read(*)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [],
+  "disabledMcpjsonServers": ["filesystem"]
 }
